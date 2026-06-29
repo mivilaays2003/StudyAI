@@ -91,7 +91,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Read file content
-    const text = await file.text();
+    let text = "";
+if (file.type === "application/pdf") {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const pdfParse = (await import("pdf-parse")).default;
+  const parsed = await pdfParse(buffer);
+  text = parsed.text;
+} else {
+  text = await file.text();
+}
     if (!text || text.trim().length < 50) {
       return NextResponse.json({ error: "File appears empty or too short" }, { status: 400 });
     }

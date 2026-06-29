@@ -195,7 +195,7 @@ export default function Dashboard() {
             transition: "all 0.2s",
           }}
         >
-          <input ref={inputRef} type="file" accept=".txt,.md,.csv,.json" onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])} />
+          <input ref={inputRef} type="file" accept=".txt,.md,.pdf" onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])} />
           <div style={{ fontSize: 40, marginBottom: 10 }}>📄</div>
           <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>{file ? "Change document" : "Drop your document here"}</div>
           <div style={{ color: "#8888AA", fontSize: 13 }}>Supports .txt, .md files · click to browse</div>
