@@ -1,18 +1,32 @@
 "use client";
-import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Replace with Supabase auth
-    // import { createClient } from '@supabase/supabase-js'
-    // const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    // await supabase.auth.signInWithOtp({ email })
-    setSent(true);
+    setLoading(true);
+    setError("");
+
+    if (isSignUp) {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) setError(error.message);
+      else router.push("/dashboard");
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setError(error.message);
+      else router.push("/dashboard");
+    }
+    setLoading(false);
   };
 
   return (
@@ -23,40 +37,56 @@ export default function Login() {
       </Link>
 
       <div style={{ background: "#1A1A2E", border: "1px solid #ffffff15", borderRadius: 20, padding: "40px 36px", width: "100%", maxWidth: 400 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8, textAlign: "center" }}>Welcome back</h1>
-        <p style={{ color: "#8888AA", textAlign: "center", marginBottom: 32, fontSize: 14 }}>Sign in with your email to continue</p>
+        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8, textAlign: "center" }}>
+          {isSignUp ? "Create account" : "Welcome back"}
+        </h1>
+        <p style={{ color: "#8888AA", textAlign: "center", marginBottom: 32, fontSize: 14 }}>
+          {isSignUp ? "Start your 3-day free trial" : "Sign in to continue"}
+        </p>
 
-        {sent ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📬</div>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Check your inbox</div>
-            <div style={{ color: "#8888AA", fontSize: 14 }}>We sent a magic link to <strong style={{ color: "#E8E8F0" }}>{email}</strong></div>
-          </div>
-        ) : (
-          <form onSubmit={handleLogin}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "#8888AA" }}>Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@university.edu"
-              required
-              style={{ width: "100%", background: "#0F0F1A", border: "1px solid #ffffff20", borderRadius: 10, padding: "12px 14px", color: "#E8E8F0", fontSize: 15, marginBottom: 20, outline: "none" }}
-            />
-            <button type="submit" style={{ width: "100%", background: "linear-gradient(135deg,#6C63FF,#9C63FF)", border: "none", borderRadius: 10, padding: "13px", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-              Send magic link
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleAuth}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "#8888AA" }}>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@university.edu"
+            required
+            style={{ width: "100%", background: "#0F0F1A", border: "1px solid #ffffff20", borderRadius: 10, padding: "12px 14px", color: "#E8E8F0", fontSize: 15, marginBottom: 16, outline: "none", boxSizing: "border-box" }}
+          />
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "#8888AA" }}>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            style={{ width: "100%", background: "#0F0F1A", border: "1px solid #ffffff20", borderRadius: 10, padding: "12px 14px", color: "#E8E8F0", fontSize: 15, marginBottom: 20, outline: "none", boxSizing: "border-box" }}
+          />
 
-        <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#8888AA" }}>
-          No account? <Link href="/dashboard" style={{ color: "#6C63FF", fontWeight: 600, textDecoration: "none" }}>Try it free →</Link>
+          {error && (
+            <div style={{ background: "#dc262620", border: "1px solid #dc262640", borderRadius: 8, padding: "10px 14px", color: "#f87171", fontSize: 13, marginBottom: 16 }}>
+              {error}
+            </div>
+          )}
+
+          <button type="submit" disabled={loading} style={{ width: "100%", background: "linear-gradient(135deg,#6C63FF,#9C63FF)", border: "none", borderRadius: 10, padding: "13px", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            {loading ? "Please wait..." : isSignUp ? "Start free trial" : "Sign in"}
+          </button>
+        </form>
+
+        <div style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: "#8888AA" }}>
+          {isSignUp ? "Already have an account? " : "Don't have an account? "}
+          <button onClick={() => setIsSignUp(!isSignUp)} style={{ color: "#6C63FF", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontSize: 13 }}>
+            {isSignUp ? "Sign in" : "Sign up free"}
+          </button>
         </div>
-      </div>
 
-      {/* Supabase setup note */}
-      <div style={{ marginTop: 24, background: "#FF658415", border: "1px solid #FF658440", borderRadius: 12, padding: "14px 18px", maxWidth: 400, width: "100%", fontSize: 13, color: "#FF6584" }}>
-        <strong>⚙️ Dev note:</strong> Connect Supabase to enable real auth. See <code>.env.example</code> for setup.
+        {isSignUp && (
+          <div style={{ marginTop: 20, background: "#6C63FF15", border: "1px solid #6C63FF30", borderRadius: 10, padding: "12px 16px", fontSize: 12, color: "#8888AA", textAlign: "center" }}>
+            🎉 3-day free trial · No charge until day 4 · Cancel anytime
+          </div>
+        )}
       </div>
     </div>
   );
